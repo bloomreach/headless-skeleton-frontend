@@ -31,7 +31,9 @@ function App({location}) {
                                 <Box p={2}>
                                     <h2>layout: {page && `${page.getComponent().getName()}`}</h2>
                                     <h2>path: {`${location.pathname}`}</h2>
-                                    <h2>api endpoint: <a href={endpointUrl}>{endpointUrl}</a></h2>
+                                    <h2>api endpoint: <a rel={'noreferrer'} target={'_blank'}
+                                                         href={endpointUrl + location.pathname}>{endpointUrl}{location.pathname}</a>
+                                    </h2>
                                     <ReactJson collapsed={true} name={'page'} src={page}/>
                                 </Box>
                             </header>
@@ -112,16 +114,14 @@ export function SkeletonContainerItemComponent({component, page}) {
 }
 
 
-function a11yProps(index)
-{
+function a11yProps(index) {
     return {
         id: `vertical-tab-${index}`,
         'aria-controls': `vertical-tabpanel-${index}`,
     };
 }
 
-function TabPanel(props)
-{
+function TabPanel(props) {
     const {children, value, index, ...other} = props;
 
     return (
