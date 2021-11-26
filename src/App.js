@@ -1,5 +1,10 @@
-import {getContainerItemContent, TYPE_CONTAINER_ITEM_UNDEFINED, TYPE_CONTAINER_NO_MARKUP} from "@bloomreach/spa-sdk";
-import {BrComponent, BrPage} from "@bloomreach/react-sdk";
+import {
+    getContainerItemContent, isComponent,
+    isContainer,
+    TYPE_CONTAINER_ITEM_UNDEFINED,
+    TYPE_CONTAINER_NO_MARKUP
+} from "@bloomreach/spa-sdk";
+import {BrComponent, BrPage, BrPageContext} from "@bloomreach/react-sdk";
 import axios from "axios";
 import {Box, Card, CardContent, Container, Paper, Tab, Tabs, Typography} from "@mui/material";
 import React from "react";
@@ -11,6 +16,7 @@ function App({location}) {
     const endpoint = urlParams.get('endpoint');
 
     return (
+
         <Container>
             <BrPage configuration={{
                 path: `${location.pathname}${location.search}`,
@@ -21,21 +27,45 @@ function App({location}) {
                 [TYPE_CONTAINER_ITEM_UNDEFINED]: SkeletonContainerItemComponent,
                 [TYPE_CONTAINER_NO_MARKUP]: SkeletonContainer
             }}>
+                <BrPageContext.Consumer>
+                    {page => {
+                        console.log(page)
+                        return <>
+                            <header>
+                                <Box p={2}>
+                                    <h2>layout: {page && `${page.getComponent().getName()}`}</h2>
+                                    <h2>path: {`${location.pathname}`}</h2>
+                                    <ReactJson collapsed={true} name={'page'} src={page}/>
+                                </Box>
+                            </header>
+                            <main>{page.getComponent().getChildren().map(component => {
+                                return <div key={component.getId()}><BrComponent path={component.getName()}/></div>
+                            })}</main>
+                        </>
+                    }}
+                </BrPageContext.Consumer>
+
             </BrPage>
         </Container>
     );
 }
 
 export function SkeletonContainer({component, page}) {
-
     return (
-        <Paper elevation={5}>
-            <Box p={2}>
-                <Typography h={2} align={"center"}>Container: {component.getName()} - {component.getId()}</Typography>
-                <ReactJson collapsed={true} name={'container'} src={component}/>
-            </Box>
-            <BrComponent/>
-        </Paper>
+        <div>
+            <Paper elevation={5}>
+                <Box p={2}>
+                    <Typography h={2}
+                                align={"center"}>Container: {component.getName()} - {component.getId()}</Typography>
+                    <ReactJson collapsed={true} name={'container'} src={component}/>
+                </Box>
+                {component.getChildren() &&
+                <div>
+                    <BrComponent/>
+                </div>
+                }
+            </Paper>
+        </div>
     )
 
 }
@@ -85,14 +115,16 @@ export function SkeletonContainerItemComponent({component, page}) {
 }
 
 
-function a11yProps(index) {
+function a11yProps(index)
+{
     return {
         id: `vertical-tab-${index}`,
         'aria-controls': `vertical-tabpanel-${index}`,
     };
 }
 
-function TabPanel(props) {
+function TabPanel(props)
+{
     const {children, value, index, ...other} = props;
 
     return (
