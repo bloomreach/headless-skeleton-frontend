@@ -1,9 +1,4 @@
-import {
-    getContainerItemContent, isComponent,
-    isContainer,
-    TYPE_CONTAINER_ITEM_UNDEFINED,
-    TYPE_CONTAINER_NO_MARKUP
-} from "@bloomreach/spa-sdk";
+import {getContainerItemContent, TYPE_CONTAINER_ITEM_UNDEFINED, TYPE_CONTAINER_NO_MARKUP} from "@bloomreach/spa-sdk";
 import {BrComponent, BrPage, BrPageContext} from "@bloomreach/react-sdk";
 import axios from "axios";
 import {Box, Card, CardContent, Container, Paper, Tab, Tabs, Typography} from "@mui/material";
@@ -14,6 +9,8 @@ function App({location}) {
 
     const urlParams = new URLSearchParams(location.search);
     const endpoint = urlParams.get('endpoint');
+
+    const endpointUrl = endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://kenan.bloomreach.io/delivery/site/v1/channels/brxsaas/pages'
 
     return (
 
@@ -29,12 +26,12 @@ function App({location}) {
             }}>
                 <BrPageContext.Consumer>
                     {page => {
-                        console.log(page)
                         return <>
                             <header>
                                 <Box p={2}>
                                     <h2>layout: {page && `${page.getComponent().getName()}`}</h2>
                                     <h2>path: {`${location.pathname}`}</h2>
+                                    <h2>api endpoint: <a href={endpointUrl}>{endpointUrl}</a></h2>
                                     <ReactJson collapsed={true} name={'page'} src={page}/>
                                 </Box>
                             </header>
