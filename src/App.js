@@ -1,7 +1,7 @@
 import {getContainerItemContent, TYPE_CONTAINER_ITEM_UNDEFINED, TYPE_CONTAINER_NO_MARKUP} from "@bloomreach/spa-sdk";
 import {BrComponent, BrPage, BrPageContext} from "@bloomreach/react-sdk";
 import axios from "axios";
-import {Box, Card, CardContent, Container, Paper, Tab, Tabs, Typography} from "@mui/material";
+import {Box, Card, CardContent, Container, Paper, Tab, Tabs} from "@mui/material";
 import React from "react";
 import ReactJson from "react-json-view";
 
@@ -54,8 +54,7 @@ export function SkeletonContainer({component, page}) {
         <div>
             <Paper elevation={5}>
                 <Box p={2}>
-                    <Typography h={2}
-                                align={"center"}>Container: {component.getName()} - {component.getId()}</Typography>
+                    <h3 align={"center"}>{component.model.label ?? `${component.getName()} - ${component.getId()}`}</h3>
                     <ReactJson collapsed={true} name={'container'} src={component}/>
                 </Box>
                 {component.getChildren() &&
@@ -82,7 +81,7 @@ export function SkeletonContainerItemComponent({component, page}) {
 
     return (
         <Card variant={"elevation"} style={{marginBottom: 10}}>
-            <Typography h={3} align={"center"}>Container Item Component: {component.getLabel()}</Typography>
+            <h4 align={"center"}>{component.getLabel()}</h4>
             <CardContent>
                 <Box sx={{flexGrow: 1, bgcolor: 'background.paper', display: 'flex', marginBottom: '30px'}}>
                     <Tabs
