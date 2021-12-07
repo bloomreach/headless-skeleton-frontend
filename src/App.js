@@ -1,6 +1,7 @@
 import {getContainerItemContent, TYPE_CONTAINER_ITEM_UNDEFINED, TYPE_CONTAINER_NO_MARKUP} from "@bloomreach/spa-sdk";
 import {BrComponent, BrPage, BrPageContext} from "@bloomreach/react-sdk";
 import axios from "axios";
+import './app.css'
 import {
     Accordion,
     AccordionDetails,
@@ -65,27 +66,7 @@ function App({location}) {
             }}>
                 <BrPageContext.Consumer>
                     {page => {
-                        const actions = (page.model.meta.branch !== 'master' && page.isPreview()) ? [
-                            // {
-                            //     icon: <AddBoxOutlinedIcon/>,
-                            //     name: 'Add Simple Component',
-                            //     onClick: () => setComponentDialogOpen(true),
-                            //     disabled: true
-                            // },
-                            // {icon: <ViewQuiltOutlinedIcon/>, name: 'Add a Layout',
-                            //     disabled: true
-                            // },
-                            {
-                                icon: <HelpCenterOutlinedIcon/>,
-                                name: 'Need help?',
-                                onClick: () => window.open('https://documentation.bloomreach.com/developers/content/tutorials/get-started.html', '_blank')
-                            },
-                            {
-                                icon: <ListAltOutlinedIcon/>,
-                                name: 'Cheat Sheet',
-                                onClick: () => setCheatSheetDialogOpen(true)
-                            },
-                        ] : [
+                        const baseActions = [
                             {
                                 icon: <HelpCenterOutlinedIcon/>,
                                 name: 'Need help?',
@@ -96,6 +77,17 @@ function App({location}) {
                                 onClick: () => setCheatSheetDialogOpen(true)
                             },
                         ]
+                        const actions = (page.model.meta.branch !== 'master' && page.isPreview()) ? [
+                            // {
+                            //     icon: <AddBoxOutlinedIcon/>,
+                            //     name: 'Add Simple Component',
+                            //     onClick: () => setComponentDialogOpen(true),
+                            //     disabled: true
+                            // },
+                            // {icon: <ViewQuiltOutlinedIcon/>, name: 'Add a Layout',
+                            //     disabled: true
+                            // },
+                        ].concat(baseActions) : baseActions
                         return <>
                             <header>
                                 <SpeedDial
@@ -196,9 +188,11 @@ function App({location}) {
                                 </Accordion>
                             </header>
                             <main>{page.getComponent().getChildren().map(component => {
-                                return <div key={component.getId()}><BrComponent path={component.getName()}/></div>
+                                return (
+                                    <div key={component.getId()}>
+                                        <BrComponent path={component.getName()}/>
+                                    </div>)
                             })}</main>
-
                         </>
                     }}
                 </BrPageContext.Consumer>
@@ -207,21 +201,17 @@ function App({location}) {
     );
 }
 
-function SkeletonContainer({component, page}) {
+function SkeletonContainer({component}) {
     return (
-        <div>
-            <Paper elevation={5}>
-                <Box p={2}>
-                    <h3 align={"center"}>{component.model.label ?? `${component.getName()} - ${component.getId()}`}</h3>
-                    <ReactJson collapsed={true} name={'container'} src={component.model}/>
-                </Box>
-                {component.getChildren() &&
-                <div>
-                    <BrComponent/>
-                </div>
-                }
+        <>
+            <Paper sx={{padding: 3, backgroundColor: "lightgray", marginTop: 1}} square>
+                <h3 align={"center"}>{component.model.label ?? `${component.getName()} - ${component.getId()}`}</h3>
+                <ReactJson collapsed={true} name={'container'} src={component.model}/>
             </Paper>
-        </div>
+            {component.getChildren() &&
+            <BrComponent/>
+            }
+        </>
     )
 
 }
@@ -280,9 +270,9 @@ function CheatSheetDialog({open, handleClose}) {
                     </ToggleButton>
 
                 </ToggleButtonGroup>
-                {cheatsheet.map(item => {
+                {cheatsheet.map((item, index) => {
                     return (
-                        <>
+                        <div key={index}>
                             <Typography variant={"h6"}>{item.heading}</Typography>
                             <CopyBlock
                                 language={'jsx'}
@@ -292,7 +282,7 @@ function CheatSheetDialog({open, handleClose}) {
                                 wrapLines={true}
                                 codeBlock
                             />
-                        </>
+                        </div>
                     )
                 })}
             </Box>
@@ -427,12 +417,11 @@ export function SkeletonContainerItemComponent({component, page}) {
         setValue(newValue);
     };
 
-
     return (
         <Card variant={"elevation"} style={{marginBottom: 10}}>
             <h4 align={"center"}>{component.getLabel()}</h4>
             <CardContent>
-                <Box sx={{flexGrow: 1, bgcolor: 'background.paper', display: 'flex', marginBottom: '30px'}}>
+                <Box sx={{flexGrow: 1, bgcolor: 'background.paper', display: 'flex'}}>
                     <Tabs
                         orientation="vertical"
                         variant="scrollable"
@@ -495,7 +484,6 @@ export function SkeletonContainerItemComponent({component, page}) {
                                         d="M9.93 12.645h4.134L11.996 7.74M11.996.009L.686 3.988l1.725 14.76 9.585 5.243 9.588-5.238L23.308 3.99 11.996.01zm7.058 18.297h-2.636l-1.42-3.501H8.995l-1.42 3.501H4.937l7.06-15.648 7.057 15.648z"/>
                                 </SvgIcon>
                             </ToggleButton>
-
                         </ToggleButtonGroup>
                         <CopyBlock
                             language={'jsx'}
@@ -506,7 +494,8 @@ export function SkeletonContainerItemComponent({component, page}) {
                             codeBlock
                         />
                         <Divider/>
-                        <Alert style={{marginTop: 4}} severity={"info"}>Add the component to the mapping of the BrPage
+                        <Alert style={{marginTop: 4}} severity={"info"}>Add the component to the mapping of the
+                            BrPage
                             element:</Alert>
                         <CopyBlock
                             language={'jsx'}
@@ -544,7 +533,7 @@ function TabPanel(props) {
             {...other}
         >
             {value === index && (
-                <Box p={3}>
+                <Box p={2}>
                     {children}
                 </Box>
             )}

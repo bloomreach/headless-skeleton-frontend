@@ -3,7 +3,6 @@ export const templates = {
         "...\n"+
                 "</BrPage>",
     "reactJsx": "import {getContainerItemContent} from \"@bloomreach/spa-sdk\";\n" +
-        "import React from \"react\";\n" +
         "\n" +
         "export function {componentname}({component, page}) {\n" +
         "\n" +
