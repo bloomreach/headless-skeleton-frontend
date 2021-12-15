@@ -16,7 +16,8 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    Divider, Link,
+    Divider,
+    Link,
     Paper,
     SpeedDial,
     SpeedDialAction,
@@ -31,7 +32,7 @@ import {
     ToggleButtonGroup,
     Typography
 } from "@mui/material";
-import React from "react";
+import React, {useContext} from "react";
 import ReactJson from "react-json-view";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {CopyBlock, github} from "react-code-blocks";
@@ -39,8 +40,22 @@ import {codeTemplates} from "./code-templates";
 import HelpCenterOutlinedIcon from '@mui/icons-material/HelpCenterOutlined';
 import ListAltOutlinedIcon from '@mui/icons-material/ListAltOutlined';
 import {cheatsheet} from "./cheatsheet";
+import {ErrorContext} from "./ErrorContext";
+
+// function flatten(arr, parent) {
+//     return arr ? arr.reduce((result, item) => [
+//         ...result,
+//         {
+//             path: `${parent ? parent + '/' : ''}${item.getName()}`,
+//             type: item.model.type
+//         },
+//         ...flatten(item.children, `${parent ? parent + '/' : ''}${item.getName()}`)
+//     ], []) : [];
+// }
 
 function App({location}) {
+
+    const {errorCode, error} = useContext(ErrorContext);
 
     const urlParams = new URLSearchParams(location.search);
     const endpoint = urlParams.get('endpoint');
@@ -53,12 +68,28 @@ function App({location}) {
     const [componentDialogOpen, setComponentDialogOpen] = React.useState(false);
     const [cheatSheetDialogOpen, setCheatSheetDialogOpen] = React.useState(false);
 
+    if (errorCode) {
+        return (
+            <Container>
+                <Paper sx={{padding: 3, backgroundColor: "lightgray", marginTop: 1}} square>
+                    <h3 align={"center"}>{error.toString()}</h3>
+                    <Alert sx={{margin: 2}} variant={"outlined"} severity={"warning"}>
+                        <Typography>This could be related
+                            to a
+                            misconfigured route</Typography>
+
+                    </Alert>
+                </Paper>
+            </Container>)
+    }
+
     return (
         <Container>
             <BrPage configuration={{
                 path: `${location.pathname}${location.search}`,
                 endpoint: endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://kenan.bloomreach.io/delivery/site/v1/channels/brxsaas/pages',
                 endpointQueryParameter: 'endpoint',
+                debug: true,
                 httpClient: axios
             }} mapping={{
                 [TYPE_CONTAINER_ITEM_UNDEFINED]: SkeletonContainerItemComponent,
@@ -66,6 +97,7 @@ function App({location}) {
             }}>
                 <BrPageContext.Consumer>
                     {page => {
+                        // console.log(flatten(page.getComponent().getChildren()).filter(value => value.type === 'container'))
                         const baseActions = [
                             {
                                 icon: <HelpCenterOutlinedIcon/>,
@@ -89,9 +121,9 @@ function App({location}) {
                             // },
                         ].concat(baseActions) : baseActions
                         return <>
-                            <header>
+                            <header key={'header'}>
                                 <SpeedDial
-                                    sx={{position: 'fixed', top: 16, right: 16, zIndex:999999}}
+                                    sx={{position: 'fixed', top: 16, right: 16, zIndex: 999999}}
                                     icon={<SpeedDialIcon/>}
                                     direction={'down'}
                                     ariaLabel={'quick menu'}
@@ -111,11 +143,11 @@ function App({location}) {
                                                  handleClose={() => setComponentDialogOpen(false)}/>
                                 <CheatSheetDialog open={cheatSheetDialogOpen}
                                                   handleClose={() => setCheatSheetDialogOpen(false)}/>
-                                <Accordion>
+                                <Accordion key={'context'}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon/>}
-                                        aria-controls="panel1a-content"
-                                        id="panel1a-header">
+                                        aria-controls="context"
+                                        id="context">
                                         <Typography sx={{width: '33%', flexShrink: 0}}>
                                             Context
                                         </Typography>
@@ -133,11 +165,11 @@ function App({location}) {
                                         </h2>
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion>
+                                <Accordion key={'page'}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon/>}
-                                        aria-controls="panel1a-content"
-                                        id="panel1a-header"
+                                        aria-controls="page"
+                                        id="page"
                                     >
                                         <Typography sx={{width: '33%', flexShrink: 0}}>
                                             Page
@@ -166,18 +198,18 @@ function App({location}) {
 
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion>
+                                <Accordion key={'menu'}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon/>}
-                                        aria-controls="panel1a-content"
-                                        id="panel1a-header"
+                                        aria-controls="menu"
+                                        id="menu"
                                     >
                                         <Typography>Menus</Typography>
                                     </AccordionSummary>
                                     <AccordionDetails>
                                         {Object.values(page.model.page).filter(component => component.type === 'menu').map(component => {
                                             return (
-                                                <Box sx={{position: 'relative'}}>
+                                                <Box key={component.data.name} sx={{position: 'relative'}}>
                                                     <h2>{component.data.name}</h2>
                                                     {page.isPreview() && <div
                                                         dangerouslySetInnerHTML={{__html: component.meta.beginNodeSpan[0].data}}/>}
@@ -187,7 +219,7 @@ function App({location}) {
                                     </AccordionDetails>
                                 </Accordion>
                             </header>
-                            <main>{page.getComponent().getChildren().map(component => {
+                            <main key={'main'}>{page.getComponent().getChildren().map(component => {
                                 return (
                                     <div key={component.getId()}>
                                         <BrComponent path={component.getName()}/>
@@ -207,7 +239,8 @@ function SkeletonContainer({component, page}) {
             <Paper sx={{padding: 3, backgroundColor: "lightgray", marginTop: 1}} square>
                 <h3 align={"center"}>{component.model.label ?? `${component.getName()} - ${component.getId()}`}</h3>
                 {(page.isPreview() && component.getChildren().length === 0) &&
-                <Alert sx={{margin:2}} variant={"outlined"} severity={"warning"}><Typography>This is an empty container, components can be added here!</Typography></Alert>}
+                <Alert sx={{margin: 2}} variant={"outlined"} severity={"warning"}><Typography>This is an empty
+                    container, components can be added here!</Typography></Alert>}
                 <ReactJson collapsed={true} name={'container'} src={component.model}/>
             </Paper>
             {component.getChildren() &&
@@ -258,7 +291,7 @@ function CheatSheetDialog({open, handleClose}) {
                                 d="M3,3H21V21H3V3M13.71,17.86C14.21,18.84 15.22,19.59 16.8,19.59C18.4,19.59 19.6,18.76 19.6,17.23C19.6,15.82 18.79,15.19 17.35,14.57L16.93,14.39C16.2,14.08 15.89,13.87 15.89,13.37C15.89,12.96 16.2,12.64 16.7,12.64C17.18,12.64 17.5,12.85 17.79,13.37L19.1,12.5C18.55,11.54 17.77,11.17 16.7,11.17C15.19,11.17 14.22,12.13 14.22,13.4C14.22,14.78 15.03,15.43 16.25,15.95L16.67,16.13C17.45,16.47 17.91,16.68 17.91,17.26C17.91,17.74 17.46,18.09 16.76,18.09C15.93,18.09 15.45,17.66 15.09,17.06L13.71,17.86M13,11.25H8V12.75H9.5V20H11.25V12.75H13V11.25Z"></path>
                         </SvgIcon>
                     </ToggleButton>
-                    <ToggleButton disabled title={'Not available'} aria-label="vueJs">
+                    <ToggleButton disabled title={'Not available'} value={'vueJs'} aria-label="vueJs">
                         <SvgIcon>
                             <path
                                 d="M19.197 1.608l.003-.006h-4.425L12 6.4v.002l-2.772-4.8H4.803v.005H0l12 20.786L24 1.608"/>
