@@ -104,7 +104,7 @@ export class AppComponent {
         componentHighLight: "4,5,6,16,19,22",
         brPageHighLight: "2,7,8,12",
         component:
-            `<!-- ng generate component {componentname} -->
+            `// ng generate component {componentname}
 import {Component, Input} from '@angular/core';
 import {Component as BrComponent, ContainerItem, Document, getContainerItemContent, Page} from "@bloomreach/spa-sdk";
 
