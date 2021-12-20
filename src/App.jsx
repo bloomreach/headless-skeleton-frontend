@@ -1,5 +1,5 @@
 import {getContainerItemContent, TYPE_CONTAINER_ITEM_UNDEFINED, TYPE_CONTAINER_NO_MARKUP} from "@bloomreach/spa-sdk";
-import {BrComponent, BrPage, BrPageContext} from "@bloomreach/react-sdk";
+import {BrComponent, BrManageContentButton, BrPage, BrPageContext} from "@bloomreach/react-sdk";
 import axios from "axios";
 import './app.css'
 import {
@@ -21,7 +21,6 @@ import {
     Paper,
     SpeedDial,
     SpeedDialAction,
-    SpeedDialIcon,
     Step,
     StepLabel,
     Stepper,
@@ -39,8 +38,11 @@ import {CopyBlock, github} from "react-code-blocks";
 import {codeTemplates} from "./code-templates";
 import HelpCenterOutlinedIcon from '@mui/icons-material/HelpCenterOutlined';
 import ListAltOutlinedIcon from '@mui/icons-material/ListAltOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import RocketLaunchOutlinedIcon from '@mui/icons-material/RocketLaunchOutlined';
 import {cheatsheet} from "./cheatsheet";
 import {ErrorContext} from "./ErrorContext";
+import {Cookies} from "react-cookie";
 
 // function flatten(arr, parent) {
 //     return arr ? arr.reduce((result, item) => [
@@ -52,6 +54,8 @@ import {ErrorContext} from "./ErrorContext";
 //         ...flatten(item.children, `${parent ? parent + '/' : ''}${item.getName()}`)
 //     ], []) : [];
 // }
+
+const cookies = new Cookies();
 
 function App({location}) {
 
@@ -67,6 +71,8 @@ function App({location}) {
 
     const [componentDialogOpen, setComponentDialogOpen] = React.useState(false);
     const [cheatSheetDialogOpen, setCheatSheetDialogOpen] = React.useState(false);
+    // const [firstTimeDialogOpen, setFirstTimeDialogOpen] = React.useState(!cookies.get('showFirstTimeDialog'));
+    const [firstTimeDialogOpen, setFirstTimeDialogOpen] = React.useState(false);
 
     if (errorCode) {
         return (
@@ -97,6 +103,7 @@ function App({location}) {
             }}>
                 <BrPageContext.Consumer>
                     {page => {
+                        const menus = Object.values(page.model.page).filter(component => component.type === 'menu');
                         // console.log(flatten(page.getComponent().getChildren()).filter(value => value.type === 'container'))
                         const baseActions = [
                             {
@@ -109,7 +116,13 @@ function App({location}) {
                                 onClick: () => setCheatSheetDialogOpen(true)
                             },
                         ]
-                        const actions = (page.model.meta.branch !== 'master' && page.isPreview()) ? [
+                        const actions = (/*page.model.meta.branch !== 'master' && */page.isPreview()) ? [
+                            {
+                                icon: <RocketLaunchOutlinedIcon/>,
+                                name: 'Welcome',
+                                onClick: () => setFirstTimeDialogOpen(true),
+                                disabled: false
+                            },
                             // {
                             //     icon: <AddBoxOutlinedIcon/>,
                             //     name: 'Add Simple Component',
@@ -124,7 +137,7 @@ function App({location}) {
                             <header key={'header'}>
                                 <SpeedDial
                                     sx={{position: 'fixed', top: 16, right: 16, zIndex: 999999}}
-                                    icon={<SpeedDialIcon/>}
+                                    icon={<InfoOutlinedIcon/>}
                                     direction={'down'}
                                     ariaLabel={'quick menu'}
                                 >
@@ -143,6 +156,14 @@ function App({location}) {
                                                  handleClose={() => setComponentDialogOpen(false)}/>
                                 <CheatSheetDialog open={cheatSheetDialogOpen}
                                                   handleClose={() => setCheatSheetDialogOpen(false)}/>
+                                <FirstTimeDialog open={page.isPreview() && firstTimeDialogOpen}
+                                                 handleClose={() => {
+                                                     cookies.set('showFirstTimeDialog', false, {
+                                                         secure: true,
+                                                         sameSite: 'none'
+                                                     });
+                                                     setFirstTimeDialogOpen(false);
+                                                 }} endpointUrl={endpointUrl}/>
                                 <Accordion key={'context'}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon/>}
@@ -189,7 +210,7 @@ function App({location}) {
 
 
                                         <ReactJson style={{padding: 2, marginBottom: 2}} collapsed={true}
-                                                   name={'page components'} src={page.model.page}/>
+                                                   name={'page elements'} src={page.model.page}/>
 
                                         {page.getDocument()?.model &&
 
@@ -198,7 +219,7 @@ function App({location}) {
 
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion key={'menu'}>
+                                {menus.length > 0 && <Accordion key={'menu'}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon/>}
                                         aria-controls="menu"
@@ -207,7 +228,7 @@ function App({location}) {
                                         <Typography>Menus</Typography>
                                     </AccordionSummary>
                                     <AccordionDetails>
-                                        {Object.values(page.model.page).filter(component => component.type === 'menu').map(component => {
+                                        {menus.map(component => {
                                             return (
                                                 <Box key={component.data.name} sx={{position: 'relative'}}>
                                                     <h2>{component.data.name}</h2>
@@ -217,7 +238,7 @@ function App({location}) {
                                             )
                                         })}
                                     </AccordionDetails>
-                                </Accordion>
+                                </Accordion>}
                             </header>
                             <main key={'main'}>{page.getComponent().getChildren().map(component => {
                                 return (
@@ -458,7 +479,7 @@ export function SkeletonContainerItemComponent({component, page}) {
     const properties = component.getParameters()
     const pagedocument = page.getDocument().getData();
 
-    const [value, setValue] = React.useState(0);
+    const [value, setValue] = React.useState(component.getLabel() !== 'Content' ? 0 : content ? 4 : 3);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -468,7 +489,7 @@ export function SkeletonContainerItemComponent({component, page}) {
     const [language, setLanguage] = React.useState('jsx');
 
     const handleSelected = (event, newSelected) => {
-        if(newSelected){
+        if (newSelected) {
             setTemplate(newSelected)
             setLanguage(codeTemplates[newSelected].language)
         }
@@ -541,7 +562,7 @@ export function SkeletonContainerItemComponent({component, page}) {
                                         d="M3,3H21V21H3V3M7.73,18.04C8.13,18.89 8.92,19.59 10.27,19.59C11.77,19.59 12.8,18.79 12.8,17.04V11.26H11.1V17C11.1,17.86 10.75,18.08 10.2,18.08C9.62,18.08 9.38,17.68 9.11,17.21L7.73,18.04M13.71,17.86C14.21,18.84 15.22,19.59 16.8,19.59C18.4,19.59 19.6,18.76 19.6,17.23C19.6,15.82 18.79,15.19 17.35,14.57L16.93,14.39C16.2,14.08 15.89,13.87 15.89,13.37C15.89,12.96 16.2,12.64 16.7,12.64C17.18,12.64 17.5,12.85 17.79,13.37L19.1,12.5C18.55,11.54 17.77,11.17 16.7,11.17C15.19,11.17 14.22,12.13 14.22,13.4C14.22,14.78 15.03,15.43 16.25,15.95L16.67,16.13C17.45,16.47 17.91,16.68 17.91,17.26C17.91,17.74 17.46,18.09 16.76,18.09C15.93,18.09 15.45,17.66 15.09,17.06L13.71,17.86Z"></path>
                                 </SvgIcon>
                             </ToggleButton>
-                            <ToggleButton  value="angular" aria-label="angular">
+                            <ToggleButton value="angular" aria-label="angular">
                                 <SvgIcon>
                                     <path
                                         d="M9.93 12.645h4.134L11.996 7.74M11.996.009L.686 3.988l1.725 14.76 9.585 5.243 9.588-5.238L23.308 3.99 11.996.01zm7.058 18.297h-2.636l-1.42-3.501H8.995l-1.42 3.501H4.937l7.06-15.648 7.057 15.648z"/>
@@ -582,10 +603,11 @@ export function SkeletonContainerItemComponent({component, page}) {
                     </TabPanel>
                     <TabPanel value={value} index={content ? 4 : 3}>
                         <div>
-                            <h3>{component.getName()}</h3>
-                            <pre>content: {JSON.stringify(content, null, 2)}</pre>
-                            <pre>properties: {JSON.stringify(properties, null, 2)}</pre>
-                            <pre>page document: {JSON.stringify(pagedocument, null, 2)}</pre>
+                            <h4>{component.getName()}</h4>
+                            {content && <pre>content: {JSON.stringify(content, null, 2)}</pre>}
+                            {(properties && Object.keys(properties).length !== 0) &&
+                            <pre>properties: {JSON.stringify(properties, null, 2)}</pre>}
+                            <pre style={{position: 'relative'}}><BrManageContentButton content={page.getDocument()}/>page document: {JSON.stringify(pagedocument, null, 2)}</pre>
                         </div>
                     </TabPanel>
                 </Box>
@@ -623,5 +645,122 @@ function TabPanel(props) {
     );
 }
 
+function FirstTimeDialog({open, handleClose, endpointUrl}) {
+
+    return (<Dialog
+        fullWidth={true}
+        maxWidth={"md"}
+        open={open}
+        onClose={handleClose}
+        sx={{zIndex: 99999999}}
+    >
+        <DialogTitle>
+            <Typography textAlign={"center"} variant={"h4"}>Welcome Developer</Typography>
+        </DialogTitle>
+        <DialogContent>
+            <Box>
+                <Typography textAlign={"center"} m={2}>You are currently looking at the default frontend application
+                    that gets shipped with the headless experience manager. Following the below tutorials you will be
+                    able to consume our api and create frontend application of your
+                    own</Typography>
+
+                <Typography textAlign={"center"} variant={"h6"}>Step one: generate a frontend project</Typography>
+                <br/>
+                <CopyBlock
+                    language={'bash'}
+                    text={`npx create-react-app my-react-content-app
+# or
+yarn create react-app my-react-content-app`}
+                    showLineNumbers={false}
+                    theme={github}
+                    wrapLines={true}
+                    codeBlock
+                />
+
+                <Typography textAlign={"center"} variant={"h6"}>Step two: install required dependencies</Typography>
+                <br/>
+                <CopyBlock
+                    language={'bash'}
+                    text={`npm install @bloomreach/spa-sdk @bloomreach/react-sdk axios
+# or
+yarn add @bloomreach/spa-sdk @bloomreach/react-sdk axios`}
+                    showLineNumbers={false}
+                    theme={github}
+                    wrapLines={true}
+                    codeBlock
+                />
+                <br/>
+                <Typography textAlign={"center"} variant={"h6"}>Step three: Place the BrPage Element to a placeholder in
+                    the render method of your App.js file</Typography>
+                <br/>
+                <CopyBlock
+                    language={'jsx'}
+                    text={`import axios from "axios";
+import {BrPage} from "@bloomreach/react-sdk";
+
+<BrPage configuration={{
+            path:\`\${window.location.pathname}\${window.location.search}\`,
+            endpoint: '${endpointUrl}',
+            httpClient: axios
+        }} 
+        mapping={{Content}}>
+</BrPage>`}
+                    showLineNumbers={false}
+                    theme={github}
+                    wrapLines={true}
+                    codeBlock
+                />
+                <br/>
+                <Typography textAlign={"center"} variant={"h6"}>Step four: Add the following Component for your first
+                    rendering</Typography>
+                <br/>
+                <Alert severity={'info'}>The <strong>Content</strong> Component will be the same as
+                    the <strong>mapping</strong> from the BrPage Element in the previous step</Alert>
+                <br/>
+                <CopyBlock
+                    language={'jsx'}
+                    text={`export function Content({component, page}) {
+  
+   const document = page?.getDocument();
+   const {title, content, introduction} = document.getData();
+
+   return (
+       <div>
+           <h1>{title}</h1>
+           <p>{introduction}</p>
+           <div dangerouslySetInnerHTML={{__html: content.value}}/>
+       </div>
+   );
+}`}
+                    showLineNumbers={false}
+                    theme={github}
+                    wrapLines={true}
+                    codeBlock
+                />
+                <br/>
+                <Typography textAlign={"center"} variant={"h6"}>Step five: Add the Content Component to the
+                    Container</Typography>
+                <br/>
+                <Typography textAlign={"center"}><img alt={'explanation on how to add components to containers'}
+                                                      align={'center'}
+                                                      src={`/component-to-container.gif`}/></Typography>
+
+                <br/>
+                <Typography textAlign={"center"}>And publish the Page</Typography>
+                <br/>
+
+                <Typography textAlign={"center"} m={2}><a
+                    href={'https://documentation.bloomreach.com/developers/content/tutorials/get-started.html'}>next
+                    milestones</a></Typography>
+
+                <Typography textAlign={"center"}>Click Close to start adding components</Typography>
+            </Box>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={handleClose}>Close</Button>
+        </DialogActions>
+    </Dialog>);
+
+}
 
 export default App;

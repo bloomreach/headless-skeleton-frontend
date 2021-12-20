@@ -17,11 +17,9 @@ export class ErrorContextProvider extends React.Component {
             requestURL = error.config.url;
             const status = error.response?.status;
             errorCode = status === 404 ? 'NOT_FOUND' : 'INTERNAL_SERVER_ERROR';
-        } else {
-            errorCode = 'GENERAL_ERROR';
+            ErrorContextProvider.hasError = true;
         }
 
-        ErrorContextProvider.hasError = true;
         return {errorCode, error, requestURL};
     }
 
