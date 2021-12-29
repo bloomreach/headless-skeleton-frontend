@@ -25,7 +25,15 @@ export function {componentname}({component, page}) {
             <pre>page document: {JSON.stringify(pagedocument, null, 2)}</pre>
         </div>
     );
-}`
+}`,
+        'container': `/* add the BrComponent element inside of the BrPage Element */
+import {BrComponent} from "@bloomreach/react-sdk";
+...
+ <BrPage ...>
+    ...
+    <BrComponent path={'{path}'}/>
+    ...
+ </BrPage>`
     },
     "vueJs": {
         "BrPage": `<template>
@@ -82,7 +90,13 @@ export default {
   },
   props: ['component', 'page']
 }
-</script>`
+</script>`,
+        container: `<!-- Add br-component element inside the br-page element -->
+<br-page :configuration="configuration" :mapping="mapping">
+ ..
+  <br-component component="{path}"/>
+ ..
+</br-page>`
     },
     "angular": {
         "BrPage": `import {Component} from '@angular/core';
@@ -96,8 +110,7 @@ import {componentname} from "./components/{componentname}/{componentname}.compon
 })
 export class AppComponent {
   configuration = {...}
-  mapping = {..., {componentname}
-  }
+  mapping = {..., {componentname}Component}
 }`
         ,
         language: "tsx",
@@ -137,7 +150,13 @@ export class {componentname}Component {
     return getContainerItemContent<any>(this.component as ContainerItem, this.page);
   }
 
-}`
+}`,
+        container: `//Add brComponent element inside the br-page element
+<br-page [configuration]="configuration" [mapping]="mapping">
+..
+   <ng-container brComponent="{path}"/>
+..
+</br-page>`
     },
 
 }
