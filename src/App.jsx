@@ -79,7 +79,7 @@ function App({location}) {
     if (errorCode) {
         return (
             <Container>
-                <Paper sx={{padding: 3, backgroundColor: "lightgray", marginTop: 1}} square>
+                <Paper sx={{padding: 3, backgroundColor: "ghostwhite", marginTop: 1}} square>
                     <h3 align={"center"}>{error.toString()}</h3>
                     <Alert sx={{margin: 2}} variant={"outlined"} severity={"warning"}>
                         <Typography>This could be related
@@ -242,10 +242,10 @@ function App({location}) {
                                     </AccordionDetails>
                                 </Accordion>}
                             </header>
-                            <main key={'main'}>{page.getComponent().getChildren().map(component => {
+                            <main key={'main'}>{flatten(page.getComponent().getChildren()).filter(value => value.type === 'container').map(component => {
                                 return (
-                                    <div key={component.getId()}>
-                                        <BrComponent path={component.getName()}/>
+                                    <div key={component.id}>
+                                        <BrComponent path={component.path}/>
                                     </div>)
                             })}</main>
                         </>
@@ -261,7 +261,6 @@ function SkeletonContainer({component, page}) {
     const [codeBoxOpen, setCodeBoxOpen] = React.useState(false);
     const path = flatten(page.getComponent().getChildren()).filter(cmp => cmp.id === component.model.id)[0].path;
 
-
     const [template, setTemplate] = React.useState('reactJsx');
     const [language, setLanguage] = React.useState('jsx');
 
@@ -274,7 +273,8 @@ function SkeletonContainer({component, page}) {
 
     return (
         <>
-            <Paper sx={{padding: 3, backgroundColor: "lightgray", marginTop: 1, position: 'relative'}} square>
+            <Paper sx={{padding: 3, backgroundColor: "gainsboro", marginTop: 1, position: 'relative'}} square>
+            {/*<Paper sx={{padding: 3, backgroundColor: "gainsboro", marginTop: 1, position: 'relative'}} square>*/}
                 <h3 align={"center"}>{component.model.label ?? `${component.getName()} - ${component.getId()}`}</h3>
                 {(page.isPreview() && component.getChildren().length === 0) &&
                 <Alert sx={{margin: 2}} variant={"outlined"} severity={"warning"}>
@@ -520,7 +520,7 @@ export function SkeletonContainerItemComponent({component, page}) {
 
     const content = getContainerItemContent(component, page) ?? undefined;
     const properties = component.getParameters()
-    const pagedocument = page.getDocument().getData();
+    const pagedocument = page.getDocument()?.getData();
 
     const [value, setValue] = React.useState(component.getLabel() !== 'Content' ? 0 : content ? 4 : 3);
 
@@ -541,7 +541,7 @@ export function SkeletonContainerItemComponent({component, page}) {
 
     return (
         <Card variant={"elevation"} style={{marginBottom: 10, position: 'relative'}}>
-            <h4 style={{marginBottom: 0}} align={"center"}>{component.getLabel()}</h4>
+            <h4 style={{marginBottom: 0, marginTop:4}} align={"center"}>{component.getLabel()}</h4>
             <CardContent>
                 <Box sx={{flexGrow: 1, bgcolor: 'background.paper', display: 'flex'}}>
                     <Tabs
