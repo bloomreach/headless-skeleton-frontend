@@ -65,6 +65,7 @@ function App({location}) {
 
     const urlParams = new URLSearchParams(location.search);
     const endpoint = urlParams.get('endpoint');
+    const token = urlParams.get('token');
 
     const endpointUrl = endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://kenan.bloomreach.io/delivery/site/v1/channels/brxsaas/pages'
 
@@ -183,6 +184,7 @@ function App({location}) {
                                         <h2>branch: {page.model.meta.branch}</h2>
                                         <h2>preview: {page.isPreview().toString()}</h2>
                                         <h2>path: {`${location.pathname}`}</h2>
+                                        {page.isPreview() && <h2>token: {token}</h2>}
                                         <h2>api endpoint: <a rel={'noreferrer'} target={'_blank'}
                                                              href={endpointUrl + location.pathname}>{endpointUrl}{location.pathname}</a>
                                         </h2>
@@ -242,7 +244,8 @@ function App({location}) {
                                     </AccordionDetails>
                                 </Accordion>}
                             </header>
-                            <main key={'main'}>{flatten(page.getComponent().getChildren()).filter(value => value.type === 'container').map(component => {
+                            <main
+                                key={'main'}>{flatten(page.getComponent().getChildren()).filter(value => value.type === 'container').map(component => {
                                 return (
                                     <div key={component.id}>
                                         <BrComponent path={component.path}/>
@@ -274,7 +277,7 @@ function SkeletonContainer({component, page}) {
     return (
         <>
             <Paper sx={{padding: 3, backgroundColor: "gainsboro", marginTop: 1, position: 'relative'}} square>
-            {/*<Paper sx={{padding: 3, backgroundColor: "gainsboro", marginTop: 1, position: 'relative'}} square>*/}
+                {/*<Paper sx={{padding: 3, backgroundColor: "gainsboro", marginTop: 1, position: 'relative'}} square>*/}
                 <h3 align={"center"}>{component.model.label ?? `${component.getName()} - ${component.getId()}`}</h3>
                 {(page.isPreview() && component.getChildren().length === 0) &&
                 <Alert sx={{margin: 2}} variant={"outlined"} severity={"warning"}>
@@ -541,7 +544,7 @@ export function SkeletonContainerItemComponent({component, page}) {
 
     return (
         <Card variant={"elevation"} style={{marginBottom: 10, position: 'relative'}}>
-            <h4 style={{marginBottom: 0, marginTop:4}} align={"center"}>{component.getLabel()}</h4>
+            <h4 style={{marginBottom: 0, marginTop: 4}} align={"center"}>{component.getLabel()}</h4>
             <CardContent>
                 <Box sx={{flexGrow: 1, bgcolor: 'background.paper', display: 'flex'}}>
                     <Tabs
