@@ -14,7 +14,7 @@ import {
     Box,
     Button,
     Card,
-    CardContent,
+    CardContent, CardMedia,
     Container,
     Dialog,
     DialogActions,
@@ -51,6 +51,7 @@ import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined';
 import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined';
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
 import ModeProvider, {advanced, ModeContext, simple} from "./ModeContext";
+import PreviewOutlinedIcon from '@mui/icons-material/PreviewOutlined';
 
 var traverse = require('traverse');
 
@@ -76,13 +77,14 @@ function App({location}) {
     const endpoint = urlParams.get('endpoint');
     const token = urlParams.get('token');
 
-    const endpointUrl = endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://kenan.bloomreach.io/delivery/site/v1/channels/brxsaas/pages'
+    const endpointUrl = endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://sandbox-sales02.bloomreach.io/delivery/site/v1/channels/brxsaas/pages'
 
     const re = new RegExp('channels\\/(.*)\\/pages');
     const channel = re.exec(endpointUrl)[1]
 
     const [componentDialogOpen, setComponentDialogOpen] = React.useState(false);
     const [cheatSheetDialogOpen, setCheatSheetDialogOpen] = React.useState(false);
+    // const [previewDialogOpen, setPreviewDialogOpen] = React.useState(false);
     const [firstTimeDialogOpen, setFirstTimeDialogOpen] = React.useState(!cookies.get(`${channel}ShowFirstTimeDialog`));
 
     if (errorCode) {
@@ -106,7 +108,7 @@ function App({location}) {
                     {({mode, setMode}) => {
                         return (<BrPage configuration={{
                             path: `${location.pathname}${location.search}`,
-                            endpoint: endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://kenan.bloomreach.io/delivery/site/v1/channels/brxsaas/pages',
+                            endpoint: endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://sandbox-sales02.bloomreach.io/delivery/site/v1/channels/brxsaas/pages',
                             endpointQueryParameter: 'endpoint',
                             debug: true,
                             httpClient: axios
@@ -119,6 +121,11 @@ function App({location}) {
                                     const menus = Object.values(page.model.page).filter(component => component.type === 'menu');
                                     // console.log(flatten(page.getComponent().getChildren()).filter(value => value.type === 'container'))
                                     const baseActions = [
+                                        // {
+                                        //     icon: <PreviewOutlinedIcon/>,
+                                        //     name: `Preview`,
+                                        //     onClick: () => setPreviewDialogOpen(true)
+                                        // },
                                         {
                                             icon: mode === 0 ? <ToggleOnOutlinedIcon/> : <ToggleOffOutlinedIcon/>,
                                             name: `Switch to ${mode === 0 ? 'advanced' : 'simple'} view`,
@@ -169,6 +176,8 @@ function App({location}) {
                                                              handleClose={() => setComponentDialogOpen(false)}/>
                                             <CheatSheetDialog open={cheatSheetDialogOpen}
                                                               handleClose={() => setCheatSheetDialogOpen(false)}/>
+                                            {/*<PreviewDialog open={previewDialogOpen}*/}
+                                            {/*               handleClose={() => setPreviewDialogOpen(false)}/>*/}
                                             {mode !== simple &&
                                             <FirstTimeDialog open={page.isPreview() && firstTimeDialogOpen}
                                                              handleClose={() => {
@@ -426,6 +435,37 @@ function CheatSheetDialog({open, handleClose}) {
 
 }
 
+// function PreviewDialog({open, handleClose}) {
+//
+//     return (<Dialog
+//         fullWidth={true}
+//         maxWidth={"lg"}
+//         open={open}
+//         onClose={handleClose}
+//         sx={{zIndex: 99999999}}
+//     >
+//         <DialogTitle>
+//             <Box sx={{display: 'flex', flexDirection: 'row', pt: 2}}>
+//                 <Typography variant={"h5"}>Preview</Typography>
+//                 <Box sx={{flex: '1 1 auto'}}/>
+//             </Box>
+//         </DialogTitle>
+//         <DialogContent>
+//             {/*<Card sx={{display: 'flex'}}>*/}
+//                 <CardMedia
+//                     style={{width: 300, height: 600, margin: '0 auto'}}
+//                     component={"iframe"}
+//                     src={"https://appetize.io/embed/25rgrayf6k9cvrczzxnd354m9c?device=nexus5&osVersion=8.1&scale=75"}
+//                 />
+//             {/*</Card>*/}
+//         </DialogContent>
+//         <DialogActions>
+//             <Button onClick={handleClose}>Close</Button>
+//         </DialogActions>
+//     </Dialog>);
+//
+// }
+
 function ComponentDialog({open, handleClose}) {
 
     const steps = ['Component Definition', 'Component Content', 'Component Properties'];
@@ -655,8 +695,9 @@ export function SkeletonContainerItemComponent({component, page}) {
                                         {content && <pre>content: {JSON.stringify(content, null, 2)}</pre>}
                                         {(properties && Object.keys(properties).length !== 0) &&
                                         <pre>properties: {JSON.stringify(properties, null, 2)}</pre>}
-                                        <pre style={{position: 'relative'}}><BrManageContentButton key={component.getName() + 'page-doc'}
-                                                                                                   content={page.getDocument()}/>page document: {JSON.stringify(pagedocument, null, 2)}</pre>
+                                        <pre style={{position: 'relative'}}><BrManageContentButton
+                                            key={component.getName() + 'page-doc'}
+                                            content={page.getDocument()}/>page document: {JSON.stringify(pagedocument, null, 2)}</pre>
                                     </div>
                                     <ToggleButton value={'componentCode'}
                                                   sx={{position: "absolute", bottom: 10, right: 10}}
@@ -670,10 +711,10 @@ export function SkeletonContainerItemComponent({component, page}) {
                         </CardContent>
                     </Card>)
             }}
-                </ModeContext.Consumer>
-                )
+        </ModeContext.Consumer>
+    )
 
-            }
+}
 
 
 function a11yProps(index) {
