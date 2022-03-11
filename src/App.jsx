@@ -1,8 +1,4 @@
-import {
-    getContainerItemContent,
-    TYPE_CONTAINER_ITEM_UNDEFINED,
-    TYPE_CONTAINER_NO_MARKUP
-} from "@bloomreach/spa-sdk";
+import {getContainerItemContent, TYPE_CONTAINER_ITEM_UNDEFINED, TYPE_CONTAINER_NO_MARKUP} from "@bloomreach/spa-sdk";
 import {BrComponent, BrManageContentButton, BrPage, BrPageContext} from "@bloomreach/react-sdk";
 import axios from "axios";
 import './app.css'
@@ -14,7 +10,7 @@ import {
     Box,
     Button,
     Card,
-    CardContent, CardMedia,
+    CardContent,
     Container,
     Dialog,
     DialogActions,
@@ -51,7 +47,6 @@ import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined';
 import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined';
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
 import ModeProvider, {advanced, ModeContext, simple} from "./ModeContext";
-import PreviewOutlinedIcon from '@mui/icons-material/PreviewOutlined';
 
 var traverse = require('traverse');
 
