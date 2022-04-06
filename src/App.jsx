@@ -16,14 +16,14 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    Divider,
+    Divider, Drawer, IconButton,
     Link,
     Paper,
     SpeedDial,
     SpeedDialAction,
     Step,
     StepLabel,
-    Stepper,
+    Stepper, styled,
     SvgIcon,
     Tab,
     Tabs,
@@ -32,6 +32,7 @@ import {
     Typography
 } from "@mui/material";
 import React, {useContext} from "react";
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ReactJson from "react-json-view";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {CopyBlock, github} from "react-code-blocks";
@@ -46,6 +47,7 @@ import {Cookies} from "react-cookie";
 import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined';
 import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined';
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
+import PreviewOutlinedIcon from '@mui/icons-material/PreviewOutlined';
 import ModeProvider, {advanced, ModeContext, simple} from "./ModeContext";
 
 var traverse = require('traverse');
@@ -64,6 +66,19 @@ function flatten(arr, parent) {
 
 const cookies = new Cookies();
 
+const drawerWidth = 292;
+
+const DrawerHeader = styled('div')(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(0, 1),
+    // necessary for content to be below app bar
+    ...theme.mixins.toolbar,
+    justifyContent: 'flex-end',
+}));
+
+
+
 function App({location}) {
 
     const {errorCode, error} = useContext(ErrorContext);
@@ -78,9 +93,11 @@ function App({location}) {
     const channel = re.exec(endpointUrl)[1]
 
     const [componentDialogOpen, setComponentDialogOpen] = React.useState(false);
+    const [drawerOpen, setDrawerOpen] = React.useState(false);
     const [cheatSheetDialogOpen, setCheatSheetDialogOpen] = React.useState(false);
-    // const [previewDialogOpen, setPreviewDialogOpen] = React.useState(false);
     const [firstTimeDialogOpen, setFirstTimeDialogOpen] = React.useState(!cookies.get(`${channel}ShowFirstTimeDialog`));
+
+
 
     if (errorCode) {
         return (
@@ -95,6 +112,7 @@ function App({location}) {
                 </Paper>
             </Container>)
     }
+
 
     return (
         <ModeProvider>
@@ -114,13 +132,14 @@ function App({location}) {
                             <BrPageContext.Consumer>
                                 {page => {
                                     const menus = Object.values(page.model.page).filter(component => component.type === 'menu');
+                                    const embedUrl = page.getChannelParameters()['__appetize.io_embed'];
                                     // console.log(flatten(page.getComponent().getChildren()).filter(value => value.type === 'container'))
                                     const baseActions = [
-                                        // {
-                                        //     icon: <PreviewOutlinedIcon/>,
-                                        //     name: `Preview`,
-                                        //     onClick: () => setPreviewDialogOpen(true)
-                                        // },
+                                        {
+                                            icon: <PreviewOutlinedIcon/>,
+                                            name: `Preview`,
+                                            onClick: () => setDrawerOpen(true)
+                                        },
                                         {
                                             icon: mode === 0 ? <ToggleOnOutlinedIcon/> : <ToggleOffOutlinedIcon/>,
                                             name: `Switch to ${mode === 0 ? 'advanced' : 'simple'} view`,
@@ -138,6 +157,7 @@ function App({location}) {
                                             onClick: () => setCheatSheetDialogOpen(true)
                                         },
 
+
                                     ]
                                     const actions = (/*page.model.meta.branch !== 'master' && */page.isPreview()) ? [
                                         {
@@ -148,6 +168,28 @@ function App({location}) {
                                         }
                                     ].concat(baseActions) : baseActions
                                     return <>
+                                        {embedUrl && <Drawer
+                                            sx={{
+                                                width: drawerWidth,
+                                                flexShrink: 0,
+                                                '& .MuiDrawer-paper': {
+                                                    width: drawerWidth,
+                                                    boxSizing: 'border-box',
+                                                },
+                                            }}
+                                            variant="persistent"
+                                            anchor="left"
+                                            open={drawerOpen}
+                                        >
+                                            <DrawerHeader>
+                                                <Typography variant={"h6"}>Appetize.io Emulator</Typography>
+                                                <IconButton onClick={()=> setDrawerOpen(false)}>
+                                                    <ChevronLeftIcon />
+                                                </IconButton>
+                                            </DrawerHeader>
+                                            <Divider />
+                                            <iframe style={{height:'100%'}} title={"appetize.io emulator"} src={embedUrl} />
+                                        </Drawer>}
                                         <header key={'header'}>
                                             <SpeedDial
                                                 sx={{position: 'fixed', top: 16, right: 16, zIndex: 999999}}
@@ -430,36 +472,6 @@ function CheatSheetDialog({open, handleClose}) {
 
 }
 
-// function PreviewDialog({open, handleClose}) {
-//
-//     return (<Dialog
-//         fullWidth={true}
-//         maxWidth={"lg"}
-//         open={open}
-//         onClose={handleClose}
-//         sx={{zIndex: 99999999}}
-//     >
-//         <DialogTitle>
-//             <Box sx={{display: 'flex', flexDirection: 'row', pt: 2}}>
-//                 <Typography variant={"h5"}>Preview</Typography>
-//                 <Box sx={{flex: '1 1 auto'}}/>
-//             </Box>
-//         </DialogTitle>
-//         <DialogContent>
-//             {/*<Card sx={{display: 'flex'}}>*/}
-//                 <CardMedia
-//                     style={{width: 300, height: 600, margin: '0 auto'}}
-//                     component={"iframe"}
-//                     src={"https://appetize.io/embed/25rgrayf6k9cvrczzxnd354m9c?device=nexus5&osVersion=8.1&scale=75"}
-//                 />
-//             {/*</Card>*/}
-//         </DialogContent>
-//         <DialogActions>
-//             <Button onClick={handleClose}>Close</Button>
-//         </DialogActions>
-//     </Dialog>);
-//
-// }
 
 function ComponentDialog({open, handleClose}) {
 
@@ -740,11 +752,7 @@ function TabPanel(props) {
     );
 }
 
-function FirstTimeDialog(
-    {
-        open, handleClose, endpointUrl
-    }
-) {
+function FirstTimeDialog({open, handleClose, endpointUrl}) {
 
     return (<Dialog
         fullWidth={true}
