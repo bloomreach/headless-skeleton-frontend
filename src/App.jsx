@@ -49,6 +49,7 @@ import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined';
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
 import PreviewOutlinedIcon from '@mui/icons-material/PreviewOutlined';
 import ModeProvider, {advanced, ModeContext, simple} from "./ModeContext";
+import {RefreshOutlined} from "@mui/icons-material";
 
 var traverse = require('traverse');
 
@@ -66,9 +67,9 @@ function flatten(arr, parent) {
 
 const cookies = new Cookies();
 
-const drawerWidth = 292;
+const drawerWidth = 300;
 
-const DrawerHeader = styled('div')(({ theme }) => ({
+const DrawerHeader = styled('div')(({theme}) => ({
     display: 'flex',
     alignItems: 'center',
     padding: theme.spacing(0, 1),
@@ -76,7 +77,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     ...theme.mixins.toolbar,
     justifyContent: 'flex-end',
 }));
-
 
 
 function App({location}) {
@@ -94,9 +94,9 @@ function App({location}) {
 
     const [componentDialogOpen, setComponentDialogOpen] = React.useState(false);
     const [drawerOpen, setDrawerOpen] = React.useState(false);
+    const [iframeRefresh, setIframeRefresh] = React.useState(0);
     const [cheatSheetDialogOpen, setCheatSheetDialogOpen] = React.useState(false);
     const [firstTimeDialogOpen, setFirstTimeDialogOpen] = React.useState(!cookies.get(`${channel}ShowFirstTimeDialog`));
-
 
 
     if (errorCode) {
@@ -132,7 +132,7 @@ function App({location}) {
                             <BrPageContext.Consumer>
                                 {page => {
                                     const menus = Object.values(page.model.page).filter(component => component.type === 'menu');
-                                    const embedUrl = page.getChannelParameters()['__appetize.io_embed'];
+                                    const appetizeioembed = page.getChannelParameters()['__appetize.io_embed'];
                                     // console.log(flatten(page.getComponent().getChildren()).filter(value => value.type === 'container'))
                                     const baseActions = [
                                         {
@@ -167,9 +167,11 @@ function App({location}) {
                                             disabled: false
                                         }
                                     ].concat(baseActions) : baseActions
+
                                     return <>
-                                        {embedUrl && <Drawer
+                                        {appetizeioembed && <Drawer
                                             sx={{
+                                                zIndex: 999999999999,
                                                 width: drawerWidth,
                                                 flexShrink: 0,
                                                 '& .MuiDrawer-paper': {
@@ -182,13 +184,19 @@ function App({location}) {
                                             open={drawerOpen}
                                         >
                                             <DrawerHeader>
-                                                <Typography variant={"h6"}>Appetize.io Emulator</Typography>
-                                                <IconButton onClick={()=> setDrawerOpen(false)}>
-                                                    <ChevronLeftIcon />
+                                                <Typography variant={"h6"}>App Preview</Typography>
+                                                <IconButton onClick={() => setDrawerOpen(false)}>
+                                                    <ChevronLeftIcon/>
+                                                </IconButton>
+                                                <IconButton onClick={() => setIframeRefresh(iframeRefresh + 1)}>
+                                                    <RefreshOutlined/>
                                                 </IconButton>
                                             </DrawerHeader>
-                                            <Divider />
-                                            <iframe style={{height:'100%'}} title={"appetize.io emulator"} src={embedUrl} />
+                                            <Divider/>
+                                            {drawerOpen &&
+                                            <iframe key={iframeRefresh} style={{height: '100%'}}
+                                                    title={"appetize.io emulator"}
+                                                    src={`${appetizeioembed}${location.pathname}${location.search}`}/>}
                                         </Drawer>}
                                         <header key={'header'}>
                                             <SpeedDial
