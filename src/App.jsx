@@ -34,7 +34,7 @@ import {
     ToggleButtonGroup,
     Typography
 } from "@mui/material";
-import React, {useContext, useEffect, useRef} from "react";
+import React, {useContext, useRef} from "react";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ReactJson from "react-json-view";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -70,7 +70,7 @@ function flatten(arr, parent) {
 
 const cookies = new Cookies();
 
-const drawerWidth = 300;
+const drawerWidth = 350;
 
 const DrawerHeader = styled('div')(({theme}) => ({
     display: 'flex',
@@ -103,25 +103,6 @@ function App({location}) {
     const [firstTimeDialogOpen, setFirstTimeDialogOpen] = React.useState(!cookies.get(`${channel}ShowFirstTimeDialog`));
 
     const refreshButton = useRef(null)
-
-    // useEffect(() => {
-    //     console.log('add event listener on message');
-    //     window.addEventListener('message', async (event) => {
-    //
-    //         switch (event.data.type) {
-    //             case 'brxm:request': {
-    //                 console.log('refresh the iframe', event.data)
-    //
-    //                 break;
-    //             }
-    //             case 'brxm:response': {
-    //                 console.log('refresh the iframe', event.data)
-    //                // refreshButton.current.click();
-    //                 break;
-    //             }
-    //         }
-    //     });
-    // }, [])
 
     if (errorCode) {
         return (
@@ -157,12 +138,12 @@ function App({location}) {
                             {page => {
                                 const menus = Object.values(page.model.page).filter(component => component.type === 'menu');
                                 const appetizeioembed = page.getChannelParameters()['__appetize.io_embed'];
-                                // console.log(flatten(page.getComponent().getChildren()).filter(value => value.type === 'container'))
                                 const baseActions = [
                                     {
                                         icon: <PreviewOutlinedIcon/>,
                                         name: `Preview`,
-                                        onClick: () => setDrawerOpen(true)
+                                        onClick: () => setDrawerOpen(true),
+                                        disabled: !page.isPreview()
                                     },
                                     {
                                         icon: mode === 0 ? <ToggleOnOutlinedIcon/> : <ToggleOffOutlinedIcon/>,
@@ -192,7 +173,7 @@ function App({location}) {
                                     }
                                 ].concat(baseActions) : baseActions
 
-                                return <Container style={{marginLeft: drawerOpen ? 300 : 'auto'}}>
+                                return <Container style={{marginLeft: drawerOpen ? drawerWidth : 'auto'}}>
                                     {appetizeioembed && <Drawer
                                         sx={{
                                             zIndex: 999999999999,
