@@ -16,14 +16,17 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    Divider, Drawer, IconButton,
+    Divider,
+    Drawer,
+    IconButton,
     Link,
     Paper,
     SpeedDial,
     SpeedDialAction,
     Step,
     StepLabel,
-    Stepper, styled,
+    Stepper,
+    styled,
     SvgIcon,
     Tab,
     Tabs,
@@ -31,7 +34,7 @@ import {
     ToggleButtonGroup,
     Typography
 } from "@mui/material";
-import React, {useContext} from "react";
+import React, {useContext, useEffect, useRef} from "react";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ReactJson from "react-json-view";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -81,6 +84,7 @@ const DrawerHeader = styled('div')(({theme}) => ({
 
 function App({location}) {
 
+
     const {errorCode, error} = useContext(ErrorContext);
 
     const urlParams = new URLSearchParams(location.search);
@@ -98,6 +102,26 @@ function App({location}) {
     const [cheatSheetDialogOpen, setCheatSheetDialogOpen] = React.useState(false);
     const [firstTimeDialogOpen, setFirstTimeDialogOpen] = React.useState(!cookies.get(`${channel}ShowFirstTimeDialog`));
 
+    const refreshButton = useRef(null)
+
+    // useEffect(() => {
+    //     console.log('add event listener on message');
+    //     window.addEventListener('message', async (event) => {
+    //
+    //         switch (event.data.type) {
+    //             case 'brxm:request': {
+    //                 console.log('refresh the iframe', event.data)
+    //
+    //                 break;
+    //             }
+    //             case 'brxm:response': {
+    //                 console.log('refresh the iframe', event.data)
+    //                // refreshButton.current.click();
+    //                 break;
+    //             }
+    //         }
+    //     });
+    // }, [])
 
     if (errorCode) {
         return (
@@ -116,219 +140,220 @@ function App({location}) {
 
     return (
         <ModeProvider>
-            <Container>
-                <ModeContext.Consumer>
-                    {({mode, setMode}) => {
-                        return (<BrPage configuration={{
-                            path: `${location.pathname}${location.search}`,
-                            endpoint: endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://sandbox-sales02.bloomreach.io/delivery/site/v1/channels/brxsaas/pages',
-                            endpointQueryParameter: 'endpoint',
-                            debug: true,
-                            httpClient: axios
-                        }} mapping={{
-                            [TYPE_CONTAINER_ITEM_UNDEFINED]: SkeletonContainerItemComponent,
-                            [TYPE_CONTAINER_NO_MARKUP]: SkeletonContainer
-                        }}>
-                            <BrPageContext.Consumer>
-                                {page => {
-                                    const menus = Object.values(page.model.page).filter(component => component.type === 'menu');
-                                    const appetizeioembed = page.getChannelParameters()['__appetize.io_embed'];
-                                    // console.log(flatten(page.getComponent().getChildren()).filter(value => value.type === 'container'))
-                                    const baseActions = [
-                                        {
-                                            icon: <PreviewOutlinedIcon/>,
-                                            name: `Preview`,
-                                            onClick: () => setDrawerOpen(true)
-                                        },
-                                        {
-                                            icon: mode === 0 ? <ToggleOnOutlinedIcon/> : <ToggleOffOutlinedIcon/>,
-                                            name: `Switch to ${mode === 0 ? 'advanced' : 'simple'} view`,
-                                            onClick: () => {
-                                                setMode(mode === simple ? advanced : simple)
-                                            }
-                                        },
-                                        {
-                                            icon: <HelpCenterOutlinedIcon/>,
-                                            name: 'Getting started?',
-                                            onClick: () => window.open('https://documentation.bloomreach.com/developers/content/get-started/get-started---introduction.html', '_blank')
-                                        },
-                                        {
-                                            icon: <ListAltOutlinedIcon/>, name: 'Cheat Sheet',
-                                            onClick: () => setCheatSheetDialogOpen(true)
-                                        },
 
-
-                                    ]
-                                    const actions = (/*page.model.meta.branch !== 'master' && */page.isPreview()) ? [
-                                        {
-                                            icon: <RocketLaunchOutlinedIcon/>,
-                                            name: 'Welcome',
-                                            onClick: () => setFirstTimeDialogOpen(true),
-                                            disabled: false
+            <ModeContext.Consumer>
+                {({mode, setMode}) => {
+                    return (<BrPage configuration={{
+                        path: `${location.pathname}${location.search}`,
+                        endpoint: endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://sandbox-sales02.bloomreach.io/delivery/site/v1/channels/brxsaas/pages',
+                        endpointQueryParameter: 'endpoint',
+                        debug: true,
+                        httpClient: axios
+                    }} mapping={{
+                        [TYPE_CONTAINER_ITEM_UNDEFINED]: SkeletonContainerItemComponent,
+                        [TYPE_CONTAINER_NO_MARKUP]: SkeletonContainer
+                    }}>
+                        <BrPageContext.Consumer>
+                            {page => {
+                                const menus = Object.values(page.model.page).filter(component => component.type === 'menu');
+                                const appetizeioembed = page.getChannelParameters()['__appetize.io_embed'];
+                                // console.log(flatten(page.getComponent().getChildren()).filter(value => value.type === 'container'))
+                                const baseActions = [
+                                    {
+                                        icon: <PreviewOutlinedIcon/>,
+                                        name: `Preview`,
+                                        onClick: () => setDrawerOpen(true)
+                                    },
+                                    {
+                                        icon: mode === 0 ? <ToggleOnOutlinedIcon/> : <ToggleOffOutlinedIcon/>,
+                                        name: `Switch to ${mode === 0 ? 'advanced' : 'simple'} view`,
+                                        onClick: () => {
+                                            setMode(mode === simple ? advanced : simple)
                                         }
-                                    ].concat(baseActions) : baseActions
+                                    },
+                                    {
+                                        icon: <HelpCenterOutlinedIcon/>,
+                                        name: 'Getting started?',
+                                        onClick: () => window.open('https://documentation.bloomreach.com/developers/content/get-started/get-started---introduction.html', '_blank')
+                                    },
+                                    {
+                                        icon: <ListAltOutlinedIcon/>, name: 'Cheat Sheet',
+                                        onClick: () => setCheatSheetDialogOpen(true)
+                                    },
 
-                                    return <>
-                                        {appetizeioembed && <Drawer
-                                            sx={{
-                                                zIndex: 999999999999,
+
+                                ]
+                                const actions = (/*page.model.meta.branch !== 'master' && */page.isPreview()) ? [
+                                    {
+                                        icon: <RocketLaunchOutlinedIcon/>,
+                                        name: 'Welcome',
+                                        onClick: () => setFirstTimeDialogOpen(true),
+                                        disabled: false
+                                    }
+                                ].concat(baseActions) : baseActions
+
+                                return <Container style={{marginLeft: drawerOpen ? 300 : 'auto'}}>
+                                    {appetizeioembed && <Drawer
+                                        sx={{
+                                            zIndex: 999999999999,
+                                            width: drawerWidth,
+                                            flexShrink: 0,
+                                            '& .MuiDrawer-paper': {
                                                 width: drawerWidth,
-                                                flexShrink: 0,
-                                                '& .MuiDrawer-paper': {
-                                                    width: drawerWidth,
-                                                    boxSizing: 'border-box',
-                                                },
-                                            }}
-                                            variant="persistent"
-                                            anchor="left"
-                                            open={drawerOpen}
+                                                boxSizing: 'border-box',
+                                            },
+                                        }}
+                                        variant="persistent"
+                                        anchor="left"
+                                        open={drawerOpen}
+                                    >
+                                        <DrawerHeader>
+                                            <Typography variant={"h6"}>App Preview</Typography>
+                                            <IconButton onClick={() => setDrawerOpen(false)}>
+                                                <ChevronLeftIcon/>
+                                            </IconButton>
+                                            <IconButton ref={refreshButton}
+                                                        onClick={() => setIframeRefresh(iframeRefresh + 1)}>
+                                                <RefreshOutlined/>
+                                            </IconButton>
+                                        </DrawerHeader>
+                                        <Divider/>
+                                        {drawerOpen &&
+                                        <iframe key={iframeRefresh} style={{height: '100%'}}
+                                                title={"appetize.io emulator"}
+                                                src={`${appetizeioembed}${location.pathname}${location.search}`}/>}
+                                    </Drawer>}
+                                    <header key={'header'}>
+                                        <SpeedDial
+                                            sx={{position: 'fixed', top: 16, right: 16, zIndex: 999999}}
+                                            icon={<InfoOutlinedIcon/>}
+                                            direction={'down'}
+                                            ariaLabel={'quick menu'}
                                         >
-                                            <DrawerHeader>
-                                                <Typography variant={"h6"}>App Preview</Typography>
-                                                <IconButton onClick={() => setDrawerOpen(false)}>
-                                                    <ChevronLeftIcon/>
-                                                </IconButton>
-                                                <IconButton onClick={() => setIframeRefresh(iframeRefresh + 1)}>
-                                                    <RefreshOutlined/>
-                                                </IconButton>
-                                            </DrawerHeader>
-                                            <Divider/>
-                                            {drawerOpen &&
-                                            <iframe key={iframeRefresh} style={{height: '100%'}}
-                                                    title={"appetize.io emulator"}
-                                                    src={`${appetizeioembed}${location.pathname}${location.search}`}/>}
-                                        </Drawer>}
-                                        <header key={'header'}>
-                                            <SpeedDial
-                                                sx={{position: 'fixed', top: 16, right: 16, zIndex: 999999}}
-                                                icon={<InfoOutlinedIcon/>}
-                                                direction={'down'}
-                                                ariaLabel={'quick menu'}
-                                            >
-                                                {actions.map((action) => (
-                                                    <SpeedDialAction
-                                                        key={action.name}
-                                                        icon={action.icon}
-                                                        tooltipTitle={action.name}
-                                                        onClick={action.onClick}
-                                                        hidden={action.disabled}
-                                                        aria-disabled={action.disabled}
-                                                    />
+                                            {actions.map((action) => (
+                                                <SpeedDialAction
+                                                    key={action.name}
+                                                    icon={action.icon}
+                                                    tooltipTitle={action.name}
+                                                    onClick={action.onClick}
+                                                    hidden={action.disabled}
+                                                    aria-disabled={action.disabled}
+                                                />
 
-                                                ))}
-                                            </SpeedDial>
-                                            <ComponentDialog open={componentDialogOpen}
-                                                             handleClose={() => setComponentDialogOpen(false)}/>
-                                            <CheatSheetDialog open={cheatSheetDialogOpen}
-                                                              handleClose={() => setCheatSheetDialogOpen(false)}/>
-                                            {/*<PreviewDialog open={previewDialogOpen}*/}
-                                            {/*               handleClose={() => setPreviewDialogOpen(false)}/>*/}
+                                            ))}
+                                        </SpeedDial>
+                                        <ComponentDialog open={componentDialogOpen}
+                                                         handleClose={() => setComponentDialogOpen(false)}/>
+                                        <CheatSheetDialog open={cheatSheetDialogOpen}
+                                                          handleClose={() => setCheatSheetDialogOpen(false)}/>
+                                        {/*<PreviewDialog open={previewDialogOpen}*/}
+                                        {/*               handleClose={() => setPreviewDialogOpen(false)}/>*/}
+                                        {mode !== simple &&
+                                        <FirstTimeDialog open={page.isPreview() && firstTimeDialogOpen}
+                                                         handleClose={() => {
+                                                             cookies.set(`${channel}ShowFirstTimeDialog`, false, {
+                                                                 secure: true,
+                                                                 sameSite: 'none'
+                                                             });
+                                                             setFirstTimeDialogOpen(false);
+                                                         }} endpointUrl={endpointUrl}/>}
+                                        <Accordion key={'context'}>
+                                            <AccordionSummary
+                                                expandIcon={<ExpandMoreIcon/>}
+                                                disabled={mode === 0}
+                                                aria-controls="context"
+                                                id="context">
+                                                <Typography sx={{width: '33%', flexShrink: 0}}>
+                                                    Context
+                                                </Typography>
+                                                <Typography
+                                                    sx={{color: 'text.secondary'}}>{`${location.pathname}`}
+                                                </Typography>
+                                            </AccordionSummary>
                                             {mode !== simple &&
-                                            <FirstTimeDialog open={page.isPreview() && firstTimeDialogOpen}
-                                                             handleClose={() => {
-                                                                 cookies.set(`${channel}ShowFirstTimeDialog`, false, {
-                                                                     secure: true,
-                                                                     sameSite: 'none'
-                                                                 });
-                                                                 setFirstTimeDialogOpen(false);
-                                                             }} endpointUrl={endpointUrl}/>}
-                                            <Accordion key={'context'}>
-                                                <AccordionSummary
-                                                    expandIcon={<ExpandMoreIcon/>}
-                                                    disabled={mode === 0}
-                                                    aria-controls="context"
-                                                    id="context">
-                                                    <Typography sx={{width: '33%', flexShrink: 0}}>
-                                                        Context
-                                                    </Typography>
-                                                    <Typography
-                                                        sx={{color: 'text.secondary'}}>{`${location.pathname}`}
-                                                    </Typography>
-                                                </AccordionSummary>
-                                                {mode !== simple &&
-                                                <AccordionDetails>
-                                                    <h2>channel: {channel}</h2>
-                                                    <h2>branch: {page.model.meta.branch}</h2>
-                                                    <h2>preview: {page.isPreview().toString()}</h2>
-                                                    <h2>path: {`${location.pathname}`}</h2>
-                                                    {page.isPreview() && <h2>token: {token}</h2>}
-                                                    <h2>api endpoint: <a rel={'noreferrer'} target={'_blank'}
-                                                                         href={endpointUrl + location.pathname}>{endpointUrl}{location.pathname}</a>
-                                                    </h2>
-                                                </AccordionDetails>}
-                                            </Accordion>
-                                            <Accordion key={'page'}>
-                                                <AccordionSummary
-                                                    expandIcon={<ExpandMoreIcon/>}
-                                                    aria-controls="page"
-                                                    id="page"
-                                                    disabled={mode === 0}
-                                                >
-                                                    <Typography sx={{width: '33%', flexShrink: 0}}>
-                                                        Page
-                                                    </Typography>
-                                                    <Typography
-                                                        sx={{color: 'text.secondary'}}>{page && `${page.getComponent().model.label ?? page.getComponent().getName()}`}</Typography>
-                                                </AccordionSummary>
-                                                {mode !== simple &&
-                                                <AccordionDetails>
-                                                    <h2>layout: {page && `${page.getComponent().model.label ?? page.getComponent().getName()}`}</h2>
-                                                    <ReactJson style={{padding: 2, marginBottom: 2}} collapsed={true}
-                                                               name={'page'}
-                                                               src={page}/>
+                                            <AccordionDetails>
+                                                <h2>channel: {channel}</h2>
+                                                <h2>branch: {page.model.meta.branch}</h2>
+                                                <h2>preview: {page.isPreview().toString()}</h2>
+                                                <h2>path: {`${location.pathname}`}</h2>
+                                                {page.isPreview() && <h2>token: {token}</h2>}
+                                                <h2>api endpoint: <a rel={'noreferrer'} target={'_blank'}
+                                                                     href={endpointUrl + location.pathname}>{endpointUrl}{location.pathname}</a>
+                                                </h2>
+                                            </AccordionDetails>}
+                                        </Accordion>
+                                        <Accordion key={'page'}>
+                                            <AccordionSummary
+                                                expandIcon={<ExpandMoreIcon/>}
+                                                aria-controls="page"
+                                                id="page"
+                                                disabled={mode === 0}
+                                            >
+                                                <Typography sx={{width: '33%', flexShrink: 0}}>
+                                                    Page
+                                                </Typography>
+                                                <Typography
+                                                    sx={{color: 'text.secondary'}}>{page && `${page.getComponent().model.label ?? page.getComponent().getName()}`}</Typography>
+                                            </AccordionSummary>
+                                            {mode !== simple &&
+                                            <AccordionDetails>
+                                                <h2>layout: {page && `${page.getComponent().model.label ?? page.getComponent().getName()}`}</h2>
+                                                <ReactJson style={{padding: 2, marginBottom: 2}} collapsed={true}
+                                                           name={'page'}
+                                                           src={page}/>
 
-                                                    <ReactJson style={{padding: 2, marginBottom: 2}} collapsed={true}
-                                                               name={'channel parameters'}
-                                                               src={page.getChannelParameters()}/>
+                                                <ReactJson style={{padding: 2, marginBottom: 2}} collapsed={true}
+                                                           name={'channel parameters'}
+                                                           src={page.getChannelParameters()}/>
 
 
-                                                    <ReactJson style={{padding: 2, marginBottom: 2}} collapsed={true}
-                                                               name={'page elements'} src={page.model.page}/>
+                                                <ReactJson style={{padding: 2, marginBottom: 2}} collapsed={true}
+                                                           name={'page elements'} src={page.model.page}/>
 
-                                                    {page.getDocument()?.model &&
+                                                {page.getDocument()?.model &&
 
-                                                    <ReactJson style={{padding: 2}} collapsed={true}
-                                                               name={'page document'}
-                                                               src={page.getDocument()?.model}/>}
+                                                <ReactJson style={{padding: 2}} collapsed={true}
+                                                           name={'page document'}
+                                                           src={page.getDocument()?.model}/>}
 
-                                                </AccordionDetails>}
-                                            </Accordion>
-                                            {menus.length > 0 && <Accordion key={'menu'}>
-                                                <AccordionSummary
-                                                    expandIcon={<ExpandMoreIcon/>}
-                                                    aria-controls="menu"
-                                                    id="menu"
-                                                >
-                                                    <Typography>Menus</Typography>
-                                                </AccordionSummary>
-                                                <AccordionDetails>
-                                                    {menus.map(component => {
-                                                        return (
-                                                            <Box key={component.data.name} sx={{position: 'relative'}}>
-                                                                <h2>{component.data.name}</h2>
-                                                                {page.isPreview() && <div
-                                                                    dangerouslySetInnerHTML={{__html: component.meta.beginNodeSpan[0].data}}/>}
-                                                            </Box>
-                                                        )
-                                                    })}
-                                                </AccordionDetails>
-                                            </Accordion>}
-                                        </header>
-                                        <main
-                                            key={'main'}>{flatten(page.getComponent().getChildren()).filter(value => value.type === 'container').map(component => {
-                                            return (
-                                                <div key={component.id}>
-                                                    <BrComponent path={component.path}/>
-                                                </div>)
-                                        })}</main>
-                                    </>
-                                }}
-                            </BrPageContext.Consumer>
-                        </BrPage>)
-                    }}
-                </ModeContext.Consumer>
+                                            </AccordionDetails>}
+                                        </Accordion>
+                                        {menus.length > 0 && <Accordion key={'menu'}>
+                                            <AccordionSummary
+                                                expandIcon={<ExpandMoreIcon/>}
+                                                aria-controls="menu"
+                                                id="menu"
+                                            >
+                                                <Typography>Menus</Typography>
+                                            </AccordionSummary>
+                                            <AccordionDetails>
+                                                {menus.map(component => {
+                                                    return (
+                                                        <Box key={component.data.name} sx={{position: 'relative'}}>
+                                                            <h2>{component.data.name}</h2>
+                                                            {page.isPreview() && <div
+                                                                dangerouslySetInnerHTML={{__html: component.meta.beginNodeSpan[0].data}}/>}
+                                                        </Box>
+                                                    )
+                                                })}
+                                            </AccordionDetails>
+                                        </Accordion>}
+                                    </header>
+                                    <main
+                                        key={'main'}>{flatten(page.getComponent().getChildren()).filter(value => value.type === 'container').map(component => {
+                                        return (
+                                            <div key={component.id}>
+                                                <BrComponent path={component.path}/>
+                                            </div>)
+                                    })}</main>
+                                </Container>
+                            }}
+                        </BrPageContext.Consumer>
+                    </BrPage>)
+                }}
+            </ModeContext.Consumer>
 
-            </Container>
+            {/*</Container>*/}
         </ModeProvider>
     );
 }
