@@ -94,7 +94,7 @@ function App({location}) {
     const endpointUrl = endpoint ?? process.env.REACT_APP_BRXM_ENDPOINT ?? 'https://sandbox-sales02.bloomreach.io/delivery/site/v1/channels/brxsaas/pages'
 
     const re = new RegExp('channels\\/(.*)\\/pages');
-    const channel = re.exec(endpointUrl)[1]
+    const channel = re.exec(endpointUrl)?.length > 0 ? re.exec(endpointUrl)[1] : 'unknown (paas)';
 
     const [componentDialogOpen, setComponentDialogOpen] = React.useState(false);
     const [drawerOpen, setDrawerOpen] = React.useState(false);
