@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@bloomreach/react-sdk": "^15.3.3",
-    "@bloomreach/spa-sdk": "^15.3.3",
+    "@bloomreach/react-sdk": "^15.4.5",
+    "@bloomreach/spa-sdk": "^15.4.5",
     "@emotion/react": "^11.6.0",
     "@emotion/styled": "^11.6.0",
     "@mui/icons-material": "^5.2.0",

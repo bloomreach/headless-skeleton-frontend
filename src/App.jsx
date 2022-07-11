@@ -68,7 +68,7 @@ const cookies = new Cookies();
 
 const drawerWidth = 292;
 
-const DrawerHeader = styled('div')(({ theme }) => ({
+const DrawerHeader = styled('div')(({theme}) => ({
     display: 'flex',
     alignItems: 'center',
     padding: theme.spacing(0, 1),
@@ -76,7 +76,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     ...theme.mixins.toolbar,
     justifyContent: 'flex-end',
 }));
-
 
 
 function App({location}) {
@@ -96,7 +95,6 @@ function App({location}) {
     const [drawerOpen, setDrawerOpen] = React.useState(false);
     const [cheatSheetDialogOpen, setCheatSheetDialogOpen] = React.useState(false);
     const [firstTimeDialogOpen, setFirstTimeDialogOpen] = React.useState(!cookies.get(`${channel}ShowFirstTimeDialog`));
-
 
 
     if (errorCode) {
@@ -132,14 +130,16 @@ function App({location}) {
                             <BrPageContext.Consumer>
                                 {page => {
                                     const menus = Object.values(page.model.page).filter(component => component.type === 'menu');
-                                    const embedUrl = page.getChannelParameters()['__appetize.io_embed'];
+                                    const embedUrl = page.getChannelParameters()['__appetize.io_embed'] ?? page.getChannelParameters()['__epreview'];
+                                    console.log('eurl', embedUrl)
                                     // console.log(flatten(page.getComponent().getChildren()).filter(value => value.type === 'container'))
-                                    const baseActions = [
-                                        {
-                                            icon: <PreviewOutlinedIcon/>,
-                                            name: `Preview`,
-                                            onClick: () => setDrawerOpen(true)
-                                        },
+                                    let baseActions = [
+                                        // {
+                                        //     icon: <PreviewOutlinedIcon/>,
+                                        //     name: `Preview`,
+                                        //     onClick: () => setDrawerOpen(true),
+                                        //     disabled: false
+                                        // },
                                         {
                                             icon: mode === 0 ? <ToggleOnOutlinedIcon/> : <ToggleOffOutlinedIcon/>,
                                             name: `Switch to ${mode === 0 ? 'advanced' : 'simple'} view`,
@@ -159,6 +159,12 @@ function App({location}) {
 
 
                                     ]
+
+                                    baseActions = embedUrl ? [{
+                                        icon: <PreviewOutlinedIcon/>,
+                                        name: `Preview`,
+                                        onClick: () => setDrawerOpen(true),
+                                    }].concat(baseActions) : baseActions;
                                     const actions = (/*page.model.meta.branch !== 'master' && */page.isPreview()) ? [
                                         {
                                             icon: <RocketLaunchOutlinedIcon/>,
@@ -182,13 +188,14 @@ function App({location}) {
                                             open={drawerOpen}
                                         >
                                             <DrawerHeader>
-                                                <Typography variant={"h6"}>Appetize.io Emulator</Typography>
-                                                <IconButton onClick={()=> setDrawerOpen(false)}>
-                                                    <ChevronLeftIcon />
+                                                <Typography variant={"h6"}>Preview</Typography>
+                                                <IconButton onClick={() => setDrawerOpen(false)}>
+                                                    <ChevronLeftIcon/>
                                                 </IconButton>
                                             </DrawerHeader>
-                                            <Divider />
-                                            <iframe style={{height:'100%'}} title={"appetize.io emulator"} src={embedUrl} />
+                                            <Divider/>
+                                            <iframe style={{height: '100%'}} title={"Preview"}
+                                                    src={embedUrl}/>
                                         </Drawer>}
                                         <header key={'header'}>
                                             <SpeedDial
@@ -298,7 +305,8 @@ function App({location}) {
                                                         return (
                                                             <Box key={component.data.name} sx={{position: 'relative'}}>
                                                                 <h2>{component.data.name}</h2>
-                                                                {page.isPreview() && <div
+                                                                {(page.isPreview() && component.meta?.beginNodeSpan) &&
+                                                                <div
                                                                     dangerouslySetInnerHTML={{__html: component.meta.beginNodeSpan[0].data}}/>}
                                                             </Box>
                                                         )
